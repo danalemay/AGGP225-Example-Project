@@ -10,13 +10,22 @@ public class MainMenuManager : MonoBehaviour
 
     [SerializeField]
     Button createButton;
+
     [SerializeField]
     Button randomButton;
 
     [SerializeField]
     TMP_Text log;
 
+    [SerializeField]
+    TMP_InputField inputField;
+
     #endregion
+
+    public string censorshipFilePath;
+    List<string> censorship = new List<string>();
+ 
+
     public static MainMenuManager Instance { get; private set; }
 
     void Awake()
@@ -28,6 +37,24 @@ public class MainMenuManager : MonoBehaviour
         else
         {
             Instance = this;
+        }
+    }
+
+    void OnEnable()
+    {
+        string _username = PlayerPrefs.GetString(PhotonManager.usernameKey);
+
+        if(!string.IsNullOrEmpty(_username))
+        {
+            inputField.text = _username;
+        }
+
+
+        System.IO.StreamReader stream = new System.IO.StreamReader(censorshipFilePath);
+
+        while (!stream.EndOfStream)
+        {
+            censorship.Add(stream.ReadLine());
         }
     }
 
@@ -55,7 +82,12 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnCreateRoomClick()
     {
-        if(PhotonManager.Instance != null)
+        if (!UsernameCheck())
+        {
+            return;
+        }
+
+        if (PhotonManager.Instance != null)
         {
             PhotonManager.Instance.CreateRoom();
         }
@@ -67,6 +99,11 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnJoinRandomClick()
     {
+        if (!UsernameCheck())
+        {
+            return;
+        }
+
         if (PhotonManager.Instance != null)
         {
             PhotonManager.Instance.JoinRandomRoom();
@@ -75,6 +112,47 @@ public class MainMenuManager : MonoBehaviour
         {
             Debug.LogError("[MainMenuManager] Unable to Join Random Room - PhotonManager unable to be found");
         }
+    }
+
+    public void OnJoinChatroom()
+    {   
+        if(!UsernameCheck())
+        {
+            return;
+        }
+
+        if (PhotonManager.Instance != null)
+        {
+            PhotonManager.Instance.JoinChatroom();
+        }
+        else
+        {
+            Debug.LogError("[MainMenuManager] Unable to Join Random Room - PhotonManager unable to be found");
+        }
+    }
+
+    bool UsernameCheck()
+    {
+        if (string.IsNullOrEmpty(inputField.text))
+        {
+            log.text = System.Environment.NewLine + "<color=red> You must enter a username before playing. </color>";
+            return false;
+        }
+
+        foreach (string s in censorship)
+        {
+            if (inputField.text.Contains(s))
+            {
+                log.text = System.Environment.NewLine + "<color=red> Your username has forbidden words. </color>";
+                return false;
+            }
+        }
+
+        PhotonManager.Instance.username = inputField.text;
+
+        PlayerPrefs.SetString(PhotonManager.usernameKey, PhotonManager.Instance.username);
+        PlayerPrefs.Save();
+        return true;
     }
 
     public void QuitApplication()

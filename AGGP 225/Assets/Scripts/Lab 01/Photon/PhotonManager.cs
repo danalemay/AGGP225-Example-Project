@@ -24,9 +24,17 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     #endregion
 
     #region Static Level Names
-    public static string gameplayLevel = "Gameplay";
+    public static string gameplayLevel = "RPC";
     public static string mainSceneName = "Main Menu";
     #endregion
+
+    #region Static Save Keys
+
+    public static string usernameKey = "Username";
+
+    #endregion
+    
+    public string username;
 
     public bool canConnect;
     public static PhotonManager Instance { get; private set; }
@@ -91,6 +99,15 @@ public class PhotonManager : MonoBehaviourPunCallbacks
             PhotonNetwork.JoinRandomRoom();
         }
     }
+
+    public void JoinChatroom()
+    {
+        if (canConnect)
+        {
+            MainMenuManager.Instance.UpdateLog("Trying to join chatroom...");
+            PhotonNetwork.JoinRandomRoom();
+        }
+    }
     #endregion
 
     #region Photon Callbacks
@@ -125,6 +142,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     {
         Debug.Log("[PhotonManager][OnJoinedRoom]");
         MainMenuManager.Instance.UpdateLog("<Color=Red>Join Random Room Failed </Color>"+ message);
+        PhotonNetwork.CreateRoom(null);
     }
 
     public override void OnLeftRoom()
@@ -142,4 +160,10 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         Debug.Log("[PhotonManager][OnPlayerLeftRoom]");
     }
     #endregion
+
+    [PunRPC]
+    void UsernameRPC(string _username, string _chat)
+    {
+        UsernameExample.instance.usernameText.text = _username + ":   " + _chat;
+    }
 }

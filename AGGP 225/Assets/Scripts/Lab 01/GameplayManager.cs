@@ -9,6 +9,11 @@ public class GameplayManager : MonoBehaviour
 {
     public GameObject playerPrefab;
 
+    public List<GameObject> spawnPoints = new List<GameObject>();
+
+    private float time;
+    private float endTime = 30f;
+
     void Start()
     {
         if (!PhotonNetwork.IsConnected)
@@ -16,7 +21,7 @@ public class GameplayManager : MonoBehaviour
             SceneManager.LoadScene(PhotonManager.mainSceneName);
 
             return;
-        }
+        }        
 
         if (playerPrefab == null)
         {
@@ -24,7 +29,18 @@ public class GameplayManager : MonoBehaviour
         }
         else
         {
-            playerPrefab = PhotonNetwork.Instantiate(this.playerPrefab.name, new Vector3(0f, 5f, 0f), Quaternion.identity, 0);
+            GameObject _spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Count - 1)];
+
+            playerPrefab = PhotonNetwork.Instantiate(this.playerPrefab.name, _spawnPoint.transform.localPosition, _spawnPoint.transform.localRotation, 0);
+        }
+    }
+
+    private void Update()
+    {
+        time += Time.deltaTime;
+        if(time >= endTime)
+        {
+
         }
     }
 }
